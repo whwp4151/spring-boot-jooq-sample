@@ -1,0 +1,47 @@
+server:
+  port: 8080
+  tomcat:
+    uri-encoding: UTF-8
+  shutdown: graceful
+
+spring:
+  threads:
+    virtual:
+      enabled: true  # ?? ??? ???
+  application:
+    name: spring_boot_jooq_sample
+
+  datasource:
+    url: jdbc:postgresql://localhost:32367/project?serverTimezone=UTC&characterEncoding=UTF-8&tinyInt1isBit=false
+    username: dev
+    password: password
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+        temp:
+          allow_jdbc_metadata_access: false
+        default_batch_fetch_size: 50
+
+  sql:
+    init:
+      mode: always
+      schema-locations:
+        - classpath:db/clear.sql
+        - classpath:db/schema.sql
+      data-locations:
+        - classpath:db/data.sql
+
+springdoc:
+  default-consumes-media-type: application/json;charset=UTF-8
+  default-produces-media-type: application/json;charset=UTF-8
+  swagger-ui:
+    path: /
+    disable-swagger-default-url: true
+    display-request-duration: true
+    operations-sorter: alpha
+  paths-to-match: /api/**

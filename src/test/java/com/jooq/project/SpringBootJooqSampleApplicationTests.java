@@ -1,4 +1,4 @@
-package com.example.spring_boot_jooq_sample;
+package com.jooq.project;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

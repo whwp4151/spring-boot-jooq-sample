@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:15.7
+    container_name: project_home
+    environment:
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: project
+    ports:
+      - "32367:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
+volumes:
+  postgres_data:
