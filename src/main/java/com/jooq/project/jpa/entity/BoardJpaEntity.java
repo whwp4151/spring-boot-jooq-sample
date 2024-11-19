@@ -1,4 +1,4 @@
-package com.jooq.project.domain.entity;
+package com.jooq.project.jpa.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "boards")
 @Entity
-public class Board {
+public class BoardJpaEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "boards_generator")
@@ -33,7 +33,7 @@ public class Board {
     private LocalDateTime updatedAt;
 
     @Builder
-    public Board(String title, String content) {
+    public BoardJpaEntity(String title, String content) {
         this.title = title;
         this.content = content;
         this.createdAt = LocalDateTime.now();
