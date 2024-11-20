@@ -1,7 +1,14 @@
+buildscript {
+	ext {
+		jooqVersion = '3.19.14'
+	}
+}
+
 plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.3.5'
 	id 'io.spring.dependency-management' version '1.1.6'
+	id 'nu.studer.jooq' version '9.0'  // JOOQ 코드 생성을 위한 플러그인
 }
 
 group = 'com.example'
@@ -36,8 +43,85 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testCompileOnly  'org.projectlombok:lombok'
 	testAnnotationProcessor  'org.projectlombok:lombok'
+
+	// JOOQ 의존성 추가
+	implementation 'org.springframework.boot:spring-boot-starter-jooq'
+
+	jooqGenerator 'org.postgresql:postgresql'
+	jooqGenerator "org.jooq:jooq:${jooqVersion}"
+	jooqGenerator "org.jooq:jooq-meta:${jooqVersion}"
+
+	jooqGenerator project(':jooq-custom') // 서브모듈을 jooqGenerator 설정에 추가
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+jooq {
+	version.set("${jooqVersion}")
+
+	configurations {
+		kybexamDB {		// 데이터 베이스 구성이름 프로젝트에 맞춰서 임의로 지정 하면 된다. gradle jooq dsl 생성 task 등에 식별이름으로 사용된다.
+			generationTool {
+				jdbc {	// DB 접속정보 설정, 로컬의 경우 아래처럼 사용하고, 실제 배포 환경에서는 접속정보등을 환경변수등으로 추가해줘야 한다.(jenkins 등에서)
+					driver = "org.postgresql.Driver"
+					// PostgreSQL URL 형식으로 변경
+					url = System.getenv("DB_URL") ?: "jdbc:postgresql://127.0.0.1:32367/project"
+					user = System.getenv("DB_USER") ?: "dev"
+					password = System.getenv("DB_PASSWORD") ?: "password"
+				}
+
+				generator {
+					name = "org.jooq.codegen.DefaultGenerator" // Java 코드 생성기, Kotlin 의 경우 다른 제너레이터 사용
+
+					database {
+						name = "org.jooq.meta.postgres.PostgresDatabase"
+						inputSchema = "public"  // 기본 스키마를 public으로 변경
+						includes = ".*"         // 모든 테이블 포함
+						excludes = "flyway_schema_history|spatial_ref_sys"  // 시스템 테이블 제외
+					}
+
+					strategy {
+						name = "com.jooq.custom.generator.CustomPrefixGeneratorStrategy"
+					}
+
+					// 생성된 코드 옵션
+					generate {
+						daos = true                       // DSL 생성시 dao 생성 여부
+						records = true                    // DSL 생성시 record 생성 여부
+						fluentSetters = true              // 메서드 체이닝 가능한 setter 생성
+						javaTimeTypes = true              // Java 8 날짜/시간 타입 사용
+						deprecated = false                // deprecated 코드 생성 안함
+						pojos = true                      // POJO 생성 추가
+						interfaces = true                 // 인터페이스 생성 추가
+					}
+
+					target {
+						// 생성될 DSL 클래스의 패키지명, 프로젝트 패키지와 일관되계 셋팅하면 된다.
+						packageName = "com.jooq.project.generated"
+						// DSL 생성 위치를 build 디렉토리로 변경
+						directory = "build/generated-src/jooq/main"
+					}
+				}
+			}
+		}
+	}
+}
+
+sourceSets {
+	main {
+		java {
+			srcDirs = ['src/main/java', "build/generated-src/jooq/main"]	// 생성된 코드를 프로젝트 소스로 인식하도로 설정
+		}
+	}
+}
+
+// JOOQ 코드 생성이 컴파일 전에 실행되도록 설정
+tasks.named('compileJava').configure {
+	it.dependsOn(tasks.named('generateKybexamDBJooq'))
+}
+
+tasks.named('compileTestJava').configure {
+	it.dependsOn(tasks.named('generateKybexamDBJooq'))
 }

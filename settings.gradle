@@ -1,1 +1,3 @@
 rootProject.name = 'spring-boot-jooq-sample'
+include 'jooq-custom'
+
