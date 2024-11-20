@@ -40,4 +40,14 @@ public class BoardJpaEntity {
         this.updatedAt = LocalDateTime.now();
     }
 
+    public void updateTitle(String title) {
+        this.title = title;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void updateContent(String content) {
+        this.content = content;
+        this.updatedAt = LocalDateTime.now();
+    }
+
 }

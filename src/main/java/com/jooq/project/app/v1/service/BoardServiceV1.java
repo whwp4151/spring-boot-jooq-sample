@@ -8,7 +8,9 @@ import com.jooq.project.jpa.repository.BoardJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -16,10 +18,16 @@ public class BoardServiceV1 {
 
     private final BoardJpaRepository boardJpaRepository;
 
+    @Transactional(readOnly = true)
     public BoardPageResponse searchBoardList(BoardPageRequest boardPageRequest) {
-        PageRequest pageRequest = PageRequest.of(boardPageRequest.getPage(), boardPageRequest.getSize());
+        PageRequest pageRequest = PageRequest.of(
+                boardPageRequest.getPage(),
+                boardPageRequest.getSize(),
+                Sort.Direction.fromString(boardPageRequest.getDirection()),
+                boardPageRequest.getSort()
+        );
 
-        Page<BoardJpaEntity> boardPage = boardJpaRepository.findAll(pageRequest);
+        Page<BoardJpaEntity> boardPage = boardJpaRepository.searchByKeyword(boardPageRequest.getSearch(), pageRequest);
 
         return BoardPageResponse.builder()
                 .currentPage(boardPage.getPageable().getPageNumber())
@@ -31,10 +39,39 @@ public class BoardServiceV1 {
                 .build();
     }
 
+    @Transactional(readOnly = true)
     public BoardDto getBoard(long boardId) {
         return boardJpaRepository.findById(boardId)
                 .map(this::convertBoardDto)
                 .orElse(null);
+    }
+
+    @Transactional
+    public boolean createBoard(BoardDto boardDto) {
+        BoardJpaEntity boardJpaEntity = convertBoardEntity(boardDto);
+        boardJpaRepository.save(boardJpaEntity);
+        return true;
+    }
+
+    @Transactional
+    public boolean updateBoard(long boardId, BoardDto boardDto) {
+        return boardJpaRepository.findById(boardId)
+                .map(boardJpaEntity -> {
+                    boardJpaEntity.updateTitle(boardDto.getTitle());
+                    boardJpaEntity.updateContent(boardDto.getContent());
+                    return true;
+                })
+                .orElse(false);
+    }
+
+    @Transactional
+    public boolean deleteBoard(long boardId) {
+        return boardJpaRepository.findById(boardId)
+                .map(boardJpaEntity -> {
+                    boardJpaRepository.delete(boardJpaEntity);
+                    return true;
+                })
+                .orElse(false);
     }
 
     private BoardDto convertBoardDto(BoardJpaEntity boardJpaEntity) {
@@ -47,4 +84,10 @@ public class BoardServiceV1 {
                 .build();
     }
 
+    private BoardJpaEntity convertBoardEntity(BoardDto boardDto) {
+        return BoardJpaEntity.builder()
+                .title(boardDto.getTitle())
+                .content(boardDto.getContent())
+                .build();
+    }
 }

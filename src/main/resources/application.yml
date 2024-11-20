@@ -7,7 +7,7 @@ server:
 spring:
   threads:
     virtual:
-      enabled: true  # ?? ??? ???
+      enabled: true
   application:
     name: spring_boot_jooq_sample
 
