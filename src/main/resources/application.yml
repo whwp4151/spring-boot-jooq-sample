@@ -46,3 +46,10 @@ springdoc:
     display-request-duration: true
     operations-sorter: alpha
   paths-to-match: /api/**
+
+logging:
+  level:
+    org:
+      jooq.tools.LoggerListener: debug
+      springframework:
+        transaction.interceptor: trace
