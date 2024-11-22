@@ -62,7 +62,7 @@ jooq {
 	version.set("${jooqVersion}")
 
 	configurations {
-		kybexamDB {		// 데이터 베이스 구성이름 프로젝트에 맞춰서 임의로 지정 하면 된다. gradle jooq dsl 생성 task 등에 식별이름으로 사용된다.
+		create("main") {
 			generationTool {
 				jdbc {	// DB 접속정보 설정, 로컬의 경우 아래처럼 사용하고, 실제 배포 환경에서는 접속정보등을 환경변수등으로 추가해줘야 한다.(jenkins 등에서)
 					driver = "org.postgresql.Driver"
@@ -82,10 +82,6 @@ jooq {
 						excludes = "flyway_schema_history|spatial_ref_sys"  // 시스템 테이블 제외
 					}
 
-					strategy {
-						name = "com.jooq.custom.generator.CustomPrefixGeneratorStrategy"
-					}
-
 					// 생성된 코드 옵션
 					generate {
 						daos = true                       // DSL 생성시 dao 생성 여부
@@ -103,6 +99,10 @@ jooq {
 						// DSL 생성 위치를 build 디렉토리로 변경
 						directory = "build/generated-src/jooq/main"
 					}
+
+					strategy {
+						name = "com.jooq.custom.generator.CustomPrefixGeneratorStrategy" // 서브모듈의 커스텀 jooqGenerator 설정에 추가
+					}
 				}
 			}
 		}
@@ -119,9 +119,9 @@ sourceSets {
 
 // JOOQ 코드 생성이 컴파일 전에 실행되도록 설정
 tasks.named('compileJava').configure {
-	it.dependsOn(tasks.named('generateKybexamDBJooq'))
+	it.dependsOn(tasks.named('generateJooq'))
 }
 
 tasks.named('compileTestJava').configure {
-	it.dependsOn(tasks.named('generateKybexamDBJooq'))
+	it.dependsOn(tasks.named('generateJooq'))
 }
