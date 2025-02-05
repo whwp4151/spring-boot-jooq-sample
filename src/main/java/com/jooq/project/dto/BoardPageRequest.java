@@ -1,5 +1,6 @@
 package com.jooq.project.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 import org.springframework.util.StringUtils;
 
@@ -9,15 +10,20 @@ import org.springframework.util.StringUtils;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class BoardPageRequest {
 
+    @Schema(example = "0")
     private int page;
 
+    @Schema(example = "10")
     private int size;
 
+    @Schema(example = "후기")
     private String search;
 
-    private String sort = "createdAt";
+    @Schema(example = "createdAt")
+    private String sort;
 
-    private String direction = "desc";
+    @Schema(example = "desc")
+    private String direction;
 
     public void validate() {
         if (page < 0) {

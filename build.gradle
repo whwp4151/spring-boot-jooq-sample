@@ -91,6 +91,10 @@ jooq {
 						deprecated = false                // deprecated 코드 생성 안함
 						pojos = true                      // POJO 생성 추가
 						interfaces = true                 // 인터페이스 생성 추가
+
+						// Spring 관련 추가 설정
+						springDao = true          // Spring DAO 지원
+						springAnnotations = true  // Spring 통합
 					}
 
 					target {
