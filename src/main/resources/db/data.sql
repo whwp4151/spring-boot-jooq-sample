@@ -39,3 +39,15 @@ INSERT INTO boards (id, title, content, created_at, updated_at) VALUES
                                                                     (nextval('boards_id_seq'), '모바일 앱 업데이트', '모바일 앱 버전이 업데이트되었습니다.', '2024-01-23 17:00:00', '2024-01-23 17:00:00'),
                                                                     (nextval('boards_id_seq'), '주말 전시회 후기', '현대미술관 전시회 다녀왔습니다.', '2024-01-24 18:15:00', '2024-01-24 18:15:00'),
                                                                     (nextval('boards_id_seq'), '회원정보 수정', '회원정보 수정은 어떻게 하나요?', '2024-01-25 19:30:00', '2024-01-25 19:30:00');
+
+-- 댓글 추가
+INSERT INTO comments (id, board_id, author, content, created_at) VALUES
+                                                                     (nextval('comments_id_seq'), 10000, 'Alice', '첫 번째 댓글입니다.', NOW()),
+                                                                     (nextval('comments_id_seq'), 10000, 'Bob', '두 번째 댓글입니다.', NOW()),
+                                                                     (nextval('comments_id_seq'), 10001, 'Charlie', '두 번째 게시글의 첫 번째 댓글입니다.', NOW());
+
+-- 첨부 파일 추가
+INSERT INTO attachments (id, board_id, file_url) VALUES
+                                                     (nextval('attachments_id_seq'), 10000, 'https://example.com/file1.png'),
+                                                     (nextval('attachments_id_seq'), 10000, 'https://example.com/file2.png'),
+                                                     (nextval('attachments_id_seq'), 10001, 'https://example.com/file3.png');

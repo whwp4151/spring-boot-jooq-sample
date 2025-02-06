@@ -1,19 +1,24 @@
 package com.jooq.project.jooq;
 
+import com.jooq.project.dto.AttachmentDto;
 import com.jooq.project.dto.BoardDto;
+import com.jooq.project.dto.BoardDtoV3;
 import com.jooq.project.dto.BoardPageRequest;
 import com.jooq.project.dto.BoardPageResponse;
+import com.jooq.project.dto.BoardPageResponseV3;
+import com.jooq.project.dto.CommentDto;
 import com.jooq.project.generated.tables.daos.BoardsDao;
 import com.jooq.project.generated.tables.pojos.BoardsPojo;
 import org.jooq.*;
 import org.jooq.impl.DSL;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.jooq.project.generated.tables.JBoards.BOARDS;
+import static com.jooq.project.generated.Tables.*;
 
 @Repository
 public class BoardJooqRepository {
@@ -28,6 +33,8 @@ public class BoardJooqRepository {
     }
 
     public BoardPageResponse searchBoardList(BoardPageRequest boardPageRequest) {
+        Pageable pageable = boardPageRequest.toPageable();
+
         // 검색 조건 설정
         Condition searchCondition = createSearchCondition(boardPageRequest.getSearch());
 
@@ -43,8 +50,8 @@ public class BoardJooqRepository {
                 .selectFrom(BOARDS)
                 .where(searchCondition)
                 .orderBy(sortField)
-                .limit(boardPageRequest.getSize())
-                .offset(boardPageRequest.getPage() * boardPageRequest.getSize())
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset())
                 .fetchInto(BoardsPojo.class)
                 .stream()
                 .map(this::convertBoardDto)
@@ -160,6 +167,69 @@ public class BoardJooqRepository {
                 .where(BOARDS.ID.eq(boardId))
                 .execute();
         return deletedRows > 0;
+    }
+
+    public BoardPageResponseV3 searchMultisetBoard(BoardPageRequest boardPageRequest) {
+        Pageable pageable = boardPageRequest.toPageable();
+
+        // 검색 조건 설정
+        Condition searchCondition = createSearchCondition(boardPageRequest.getSearch());
+
+        // 정렬 설정
+        SortField<?> sortField = createSortField(boardPageRequest.getSort(), boardPageRequest.getDirection());
+
+        // 전체 카운트 조회
+        Long totalCount = dslContext
+                .selectCount()
+                .from(BOARDS)
+                .where(searchCondition)
+                .fetchOneInto(Long.class);
+
+        // 페이지네이션 데이터 조회
+        List<BoardDtoV3> boardList = dslContext
+                .select(
+                        BOARDS.ID,
+                        BOARDS.TITLE,
+                        BOARDS.CONTENT,
+                        BOARDS.CREATED_AT,
+                        BOARDS.UPDATED_AT,
+
+                        // 댓글
+                        DSL.multiset(
+                                        dslContext.select(
+                                                        COMMENTS.ID,
+                                                        COMMENTS.AUTHOR,
+                                                        COMMENTS.CONTENT,
+                                                        COMMENTS.CREATED_AT
+                                                )
+                                                .from(COMMENTS)
+                                                .where(COMMENTS.BOARD_ID.eq(BOARDS.ID))
+                                                .orderBy(COMMENTS.CREATED_AT)
+                                )
+                                .convertFrom(r -> r.into(CommentDto.class))
+                                .as("comments"),
+
+                        // 첨부파일
+                        DSL.multiset(
+                                        dslContext.select(
+                                                        ATTACHMENTS.ID,
+                                                        ATTACHMENTS.FILE_URL
+                                                )
+                                                .from(ATTACHMENTS)
+                                                .where(ATTACHMENTS.BOARD_ID.eq(BOARDS.ID))
+                                                .orderBy(ATTACHMENTS.ID.desc())
+                                )
+                                .convertFrom(r -> r.into(AttachmentDto.class))
+                                .as("attachments")
+                )
+                .from(BOARDS)
+                .where(searchCondition)
+                .orderBy(sortField)
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset())
+                .fetchInto(BoardDtoV3.class);
+
+        return BoardPageResponseV3.of(boardList, pageable, totalCount);
     }
 
 }

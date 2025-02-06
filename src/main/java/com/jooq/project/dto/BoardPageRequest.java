@@ -2,6 +2,8 @@ package com.jooq.project.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.util.StringUtils;
 
 @Getter
@@ -10,7 +12,7 @@ import org.springframework.util.StringUtils;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class BoardPageRequest {
 
-    @Schema(example = "0")
+    @Schema(example = "1")
     private int page;
 
     @Schema(example = "10")
@@ -26,7 +28,7 @@ public class BoardPageRequest {
     private String direction;
 
     public void validate() {
-        if (page < 0) {
+        if (page < 1) {
             throw new IllegalArgumentException("Page index must not be less than zero!");
         }
         if (size < 1) {
@@ -41,6 +43,10 @@ public class BoardPageRequest {
         if (!StringUtils.hasText(direction)) {
             throw new IllegalArgumentException("Direction must not be null!");
         }
+    }
+
+    public Pageable toPageable() {
+        return PageRequest.of(page - 1, size);
     }
 
 }
