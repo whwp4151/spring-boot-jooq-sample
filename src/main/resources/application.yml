@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 10000
   tomcat:
     uri-encoding: UTF-8
   shutdown: graceful
@@ -53,3 +53,10 @@ logging:
       jooq.tools.LoggerListener: debug
       springframework:
         transaction.interceptor: trace
+
+# 모니터링
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

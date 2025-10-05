@@ -52,6 +52,10 @@ dependencies {
 	jooqGenerator "org.jooq:jooq-meta:${jooqVersion}"
 
 	jooqGenerator project(':jooq-custom') // 서브모듈을 jooqGenerator 설정에 추가
+
+    // 모니터링
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
 }
 
 tasks.named('test') {

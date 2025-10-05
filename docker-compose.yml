@@ -12,5 +12,32 @@ services:
       - postgres_data:/var/lib/postgresql/data
     restart: always
 
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    user: "$UID:$GID"
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/prometheus-data:/prometheus
+    networks:
+      - monitoring-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    user: "$UID:$GID"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./monitoring/grafana-data:/var/lib/grafana
+    networks:
+      - monitoring-network
+
 volumes:
   postgres_data:
+
+networks:
+  monitoring-network:
+    driver: bridge
