@@ -35,3 +35,7 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### 모니터링 ###
+/monitoring/grafana-data/*
+/monitoring/prometheus-data/*
